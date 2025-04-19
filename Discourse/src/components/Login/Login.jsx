@@ -1,4 +1,3 @@
-// src/components/Login/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
@@ -9,28 +8,17 @@ const Login = ({ setRole }) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const users = {
-    admin: { username: 'admin', password: 'admin123', role: 'admin' },
-    user: { username: 'user', password: 'user123', role: 'user' },
-  };
+  const adminCredentials = { username: 'admin', password: 'admin123', role: 'admin' };
 
   const handleLogin = (e) => {
     e.preventDefault();
     setError('');
 
-    const user = Object.values(users).find(
-      (u) => u.username === username && u.password === password
-    );
+    if (username === adminCredentials.username && password === adminCredentials.password) {
+      localStorage.setItem('role', adminCredentials.role);
+      setRole(adminCredentials.role);
 
-    if (user) {
-      localStorage.setItem('role', user.role);
-      setRole(user.role);
-
-      if (user.role === 'admin') {
-        navigate('/admin'); // Redirect to Admin page
-      } else {
-        navigate('/'); // Redirect to User page
-      }
+      navigate('/admin');
     } else {
       setError('Invalid credentials');
     }
