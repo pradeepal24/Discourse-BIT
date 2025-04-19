@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.wrapper {
+    position: relative;
+    width: 400px;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.form-box h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.form-box h2 {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.input-box {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-box label {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #333;
+}
+
+.input-box input::placeholder {
+    color: #aaa;
+}
+
+.submit {
+    width: 100%;
+    padding: 10px 0;
+    border: none;
+    border-radius: 5px;
+    background-color: #6c63ff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 10px; 
+    transition: background-color 0.3s ease;
+}
+
+.submit:hover {
+    background-color: #5a54d6;
+}
+
+.or {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.google-sign-in {
+    width: 100%;
+    padding: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.google-sign-in img {
+    margin-right: 10px;
+}
+
+.google-sign-in:hover {
+    background-color: #f0f0f0;
+}
+
+.sidebar {
+    height: 100vh;
+    background-color: #343a40;
+    color: white;
+  }
+  
+  .content {
+    margin-left: 240px;
+    padding: 20px;
+    width: calc(100% - 240px);
+    transition: margin-left 0.3s ease;
+  }
+  
+  .sidebar.collapsed + .content {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+
