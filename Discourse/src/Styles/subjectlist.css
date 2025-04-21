@@ -1,0 +1,90 @@
+/* Container that fills the available space and centers the card */
+.subjectlist-container {
+  max-width: 100%;
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  background-color: #f8fafc;
+  box-sizing: border-box;
+}
+
+/* Card for Subject List */
+.subject-card {
+  width: 100vw;
+  max-width: 1200px;
+  background-color: #ffffff;
+  border: 1px solid #dfe4ea;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+/* Card Header */
+.subject-card-header {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  padding: 24px 32px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+/* Card Body */
+.subject-card-body {
+  padding: 32px;
+  overflow-x: auto;
+}
+
+/* Table Styles */
+.subject-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.subject-table th,
+.subject-table td {
+  padding: 16px 24px;
+  font-size: 16px;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.subject-table th {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.subject-table tbody tr {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(30, 58, 138, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.subject-table tbody tr:hover {
+  background-color: #e8f0fe;
+  box-shadow: 0 3px 10px rgba(30, 58, 138, 0.2);
+}
+
+/* Link Styling */
+.click-here-link {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.click-here-link:hover,
+.click-here-link:focus {
+  color: #1d4ed8;
+  text-decoration: underline;
+  outline: none;
+}
