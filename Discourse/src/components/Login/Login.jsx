@@ -47,7 +47,7 @@ const Login = ({ setRole }) => {
     <div className="wrapper">
 
       <div>
-        <img src={image} alt="bit logo" />
+        <img src={image} alt="bit logo" style={{width:200,height:200}}/>
       </div>
       <div className="form-box login">
         <form onSubmit={handleLogin}>
@@ -58,7 +58,7 @@ const Login = ({ setRole }) => {
             <label htmlFor="username">Username</label>
             <input
               type="text"
-              id="username"
+              id="username" 
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
