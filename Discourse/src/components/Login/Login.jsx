@@ -1,4 +1,3 @@
-// src/components/Login/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -11,35 +10,30 @@ const Login = ({ setRole }) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const users = {
+    admin: { username: 'admin', password: 'admin123', role: 'admin' },
+    user: { username: 'user', password: 'user123', role: 'user' },
+  };
+
+  const handleLogin = (e) => {
     e.preventDefault();
     setError('');
 
-    try {
-      const response = await axios.post('http://localhost:5000/login', {
-        username,
-        password,
-      });
+    const user = Object.values(users).find(
+      (u) => u.username === username && u.password === password
+    );
 
-      const { role } = response.data;
+    if (user) {
+      localStorage.setItem('role', user.role);
+      setRole(user.role);
 
-      // Save role and update state
-      localStorage.setItem('role', role);
-      setRole(role);
-
-      // Redirect based on role
-      if (role === 'admin') {
-        navigate('/drawer');
-      } else if (role === 'faculty') {
-        navigate('/drawer');
-      } else if (role === 'student') {
-        navigate('/drawer');
+      if (user.role === 'admin') {
+        navigate('/admin'); // Redirect to Admin page
       } else {
-        navigate('/not-authorized'); 
+        navigate('/'); // Redirect to User page
       }
-    } catch (err) {
-      console.error(err);
-      setError('Invalid username or password');
+    } else {
+      setError('Invalid credentials');
     }
   };
 
