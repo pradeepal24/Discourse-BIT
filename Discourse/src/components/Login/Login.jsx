@@ -10,30 +10,35 @@ const Login = ({ setRole }) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const users = {
-    admin: { username: 'admin', password: 'admin123', role: 'admin' },
-    user: { username: 'user', password: 'user123', role: 'user' },
-  };
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    const user = Object.values(users).find(
-      (u) => u.username === username && u.password === password
-    );
+    try {
+      const response = await axios.post('http://localhost:5000/login', {
+        username,
+        password,
+      });
 
-    if (user) {
-      localStorage.setItem('role', user.role);
-      setRole(user.role);
+      const { role } = response.data;
 
-      if (user.role === 'admin') {
-        navigate('/admin'); // Redirect to Admin page
+      // Save role and update state
+      localStorage.setItem('role', role);
+      setRole(role);
+
+      // Redirect based on role
+      if (role === 'admin') {
+        navigate('/drawer');
+      } else if (role === 'faculty') {
+        navigate('/drawer');
+      } else if (role === 'student') {
+        navigate('/drawer');
       } else {
-        navigate('/'); // Redirect to User page
+        navigate('/not-authorized'); 
       }
-    } else {
-      setError('Invalid credentials');
+    } catch (err) {
+      console.error(err);
+      setError('Invalid username or password');
     }
   };
 
