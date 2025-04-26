@@ -1,52 +1,56 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './Login.css';
-import image from '../../assets/image.png'
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./Login.css";
+import image from "../../assets/image.png";
 
 const Login = ({ setRole }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
-      const response = await axios.post('http://localhost:5000/login', {
+      const response = await axios.post("http://localhost:5000/login", {
         username,
         password,
       });
 
-      const { role } = response.data;
+      const { name, role, faculty_id, subject, department } = response.data;
+      console.log(response.data);
 
-      // Save role and update state
-      localStorage.setItem('role', role);
+      localStorage.setItem("username", name);
+      localStorage.setItem("role", role);
+      localStorage.setItem("faculty_id", faculty_id);
+      localStorage.setItem("subject", subject);
+      localStorage.setItem("department", department);
+
       setRole(role);
 
       // Redirect based on role
-      if (role === 'admin') {
-        navigate('/drawer');
-      } else if (role === 'faculty') {
-        navigate('/drawer');
-      } else if (role === 'student') {
-        navigate('/drawer');
+      if (role === "admin") {
+        navigate("/drawer");
+      } else if (role === "faculty") {
+        navigate("/drawer");
+      } else if (role === "student") {
+        navigate("/drawer");
       } else {
-        navigate('/not-authorized'); 
+        navigate("/not-authorized");
       }
     } catch (err) {
       console.error(err);
-      setError('Invalid username or password');
+      setError("Invalid username or password");
     }
   };
 
   return (
     <div className="wrapper">
-
       <div>
-        <img src={image} alt="bit logo" style={{width:200,height:200}}/>
+        <img src={image} alt="bit logo" style={{ width: 150, height: 150 }} />
       </div>
       <div className="form-box login">
         <form onSubmit={handleLogin}>
@@ -57,7 +61,7 @@ const Login = ({ setRole }) => {
             <label htmlFor="username">Username</label>
             <input
               type="text"
-              id="username" 
+              id="username"
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -77,7 +81,9 @@ const Login = ({ setRole }) => {
             />
           </div>
 
-          <button className="submit" type="submit">Login</button>
+          <button className="submit" type="submit">
+            Login
+          </button>
           <div className="or">Or</div>
 
           <button className="google-sign-in" type="button">

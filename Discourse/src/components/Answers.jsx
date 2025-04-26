@@ -1,208 +1,528 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  TextField,
+  CircularProgress,
+  Alert,
+  Badge,
+  Divider,
+  IconButton,
+  Paper,
+} from "@mui/material";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ThumbDownIcon from "@mui/icons-material/ThumbDown";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import ChatIcon from "@mui/icons-material/Chat";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const Answers = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const initialQAs = [
-    { id: 1, question: "What is your name?", answer: "My name is Manoj Karuppusamy." },
-    { id: 2, question: "What is your favorite subject?", answer: "My favorite subject is Physics." },
-    { id: 3, question: "What is your favorite hobby?", answer: "My favorite hobby is Reading." },
-    { id: 4, question: "What motivates you to study?", answer: "Nature inspires me to stay focused and grow stronger." },
-    { id: 5, question: "Where do you see yourself in 5 years?", answer: "In 5 years, I see myself as a Software Engineer." },
-  ];
-
-  const [qas, setQas] = useState(
-    initialQAs.map(item => ({
-      ...item,
-      showAnswer: false,
-      likes: 0,
-      dislikes: 0,
-      showReply: false,
-      replyText: "",
-      replies: []
-    }))
-  );
-
-  const toggleAnswer = id => {
-    setQas(qas.map(item =>
-      item.id === id ? { ...item, showAnswer: !item.showAnswer } : item
-    ));
-  };
-
-  const vote = (id, type) => {
-    setQas(qas.map(item =>
-      item.id === id
-        ? {
-            ...item,
-            likes: type === 'like' ? item.likes + 1 : item.likes,
-            dislikes: type === 'dislike' ? item.dislikes + 1 : item.dislikes,
-          }
-        : item
-    ));
-  };
-
-  const toggleReply = id => {
-    setQas(qas.map(item =>
-      item.id === id ? { ...item, showReply: !item.showReply } : item
-    ));
-  };
-
-  const handleReplyChange = (id, value) => {
-    setQas(qas.map(item =>
-      item.id === id ? { ...item, replyText: value } : item
-    ));
-  };
-
-  const submitReply = id => {
-    setQas(qas.map(item => {
-      if (item.id === id && item.replyText.trim()) {
-        return {
-          ...item,
-          replies: [...item.replies, item.replyText.trim()],
+  // Get data from URL state or localStorage
+  const subject = location.state?.subject || localStorage.getItem("subject");
+  const faculty =
+    location.state?.faculty || localStorage.getItem("faculty") || "Dr. Smith";
+  const department = localStorage.getItem("department");
+  const username = localStorage.getItem("username");
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  console.log("this is console log username", username);
+  // Fetch questions from database
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get("http://localhost:5000/answers", {
+        params: {
+          department: department,
+          subject: subject,
+        },
+      })
+      .then((response) => {
+        // Transform data to include UI state for each question
+        const questionData = response.data.map((q) => ({
+          ...q,
+          showAnswer: false,
+          showReplyInput: false,
           replyText: "",
-          showReply: false
-        };
-      }
-      return item;
-    }));
+          liked: false,
+          disliked: false,
+        }));
+
+        setQuestions(questionData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching questions:", err);
+        setError("Failed to load questions. Please try again later.");
+        setLoading(false);
+      });
+  }, [department, subject]);
+
+  // Toggle answer visibility
+  const toggleAnswer = (id) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === id ? { ...q, showAnswer: !q.showAnswer } : q
+      )
+    );
   };
 
-  const deleteReply = (qid, index) => {
-    setQas(qas.map(item => {
-      if (item.id === qid) {
-        const newReplies = [...item.replies];
-        newReplies.splice(index, 1);
-        return { ...item, replies: newReplies };
-      }
-      return item;
-    }));
+  // Toggle reply input field
+  const toggleReply = (id) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === id ? { ...q, showReplyInput: !q.showReplyInput } : q
+      )
+    );
   };
 
-  return (
-    <div
-      className="vh-100 d-flex flex-column p-0 bg-light mx-auto"
-      style={{
-        maxWidth: '1250px',
-        width: '100vw',
-        position: 'relative'
-      }}
-    >
-      {/* Header */}
-      <div className="bg-primary text-white text-center py-4">
-        <h2 className="mb-0">Discourse Forum: Physics</h2>
-      </div>
+  // Handle reply text change
+  const handleReplyChange = (id, text) => {
+    setQuestions(
+      questions.map((q) => (q.id === id ? { ...q, replyText: text } : q))
+    );
+  };
 
-      {/* Meta Info */}
-      <div className="bg-white p-4 border-bottom shadow-sm position-sticky top-0 z-3">
-        <div className="d-flex justify-content-between text-dark">
-          <div><i className="bi bi-person-fill me-2 text-secondary"></i><strong>Faculty:</strong> ManojK</div>
-          <div><strong>Department:</strong> IT</div>
-          <div><strong>Course Code:</strong> PHY101</div>
-          <div></div>
-        </div>
-      </div>
+  // Submit reply
+  const submitReply = (id) => {
+    const question = questions.find((q) => q.id === id);
+    if (!question.replyText.trim()) return;
 
-      {/* Q&A Section (Scrollable only inside this area) */}
-      <div
-        className="overflow-auto p-4"
-        style={{
-          flex: 1,
-          backgroundColor: '#f8f9fa',
-          height: 'calc(100vh - 200px)',  // Adjust the height to avoid overlap with header/footer
-          paddingBottom: '50px'  // Ensure the bottom part isn't hidden behind the button
+    // In a real app, you'd send this to your backend
+    axios
+      .post("http://localhost:5000/doubts", {
+        
+        questionId: id,
+        replyText: question.replyText,
+        username:username,
+        // userId: localStorage.getItem('userId') || 'anonymous',
+        subject: subject,
+        department: department,
+      })
+      .then((response) => {
+        // Update local state with new reply
+        setQuestions(
+          questions.map((q) => {
+            if (q.id === id) {
+              const updatedReplies = [
+                ...(q.replies || []),
+                {
+                  id: response.data.id || Date.now(),
+                  text: q.replyText,
+                  userId: localStorage.getItem("username") || "anonymous",
+                  timestamp: new Date().toISOString(),
+                },
+              ];
+
+              return {
+                ...q,
+                replies: updatedReplies,
+                replyText: "",
+                showReplyInput: false,
+              };
+            }
+            return q;
+          })
+        );
+      })
+      .catch((err) => {
+        console.error("Error submitting reply:", err);
+        alert("Failed to submit reply. Please try again.");
+      });
+  };
+
+  // Handle likes and dislikes
+  const handleVote = (id, voteType) => {
+    setQuestions(
+      questions.map((q) => {
+        if (q.id === id) {
+          // Toggle the vote state
+          if (voteType === "like") {
+            if (q.liked) {
+              return { ...q, liked: false, likes: (q.likes || 0) - 1 };
+            } else {
+              // If disliked, remove dislike first
+              const updatedDislikes = q.disliked
+                ? (q.dislikes || 0) - 1
+                : q.dislikes || 0;
+              return {
+                ...q,
+                liked: true,
+                disliked: false,
+                likes: (q.likes || 0) + 1,
+                dislikes: updatedDislikes,
+              };
+            }
+          } else {
+            if (q.disliked) {
+              return { ...q, disliked: false, dislikes: (q.dislikes || 0) - 1 };
+            } else {
+              // If liked, remove like first
+              const updatedLikes = q.liked ? (q.likes || 0) - 1 : q.likes || 0;
+              return {
+                ...q,
+                disliked: true,
+                liked: false,
+                dislikes: (q.dislikes || 0) + 1,
+                likes: updatedLikes,
+              };
+            }
+          }
+        }
+        return q;
+      })
+    );
+
+    // In a real app, you'd also update the backend
+    axios
+      .post("http://localhost:5000/api/vote", {
+        questionId: id,
+        voteType: voteType,
+        userId: localStorage.getItem("userId") || "anonymous",
+      })
+      .catch((err) => {
+        console.error("Error saving vote:", err);
+      });
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+          minHeight: 400,
         }}
       >
-        {qas.map((item, qIndex) => (
-          <div key={item.id} className="mb-5">
-            {/* Question */}
-            <div className="d-flex justify-content-between align-items-center bg-white p-4 rounded shadow-sm border">
-              <h4 className="mb-0">
-                <span className="me-2">Q{item.id}.</span>
-                <i className="bi bi-question-circle-fill text-primary me-2"></i>
-                {item.question}
-              </h4>
-              <button className="btn btn-outline-primary btn-sm" onClick={() => toggleAnswer(item.id)}>
-                {item.showAnswer ? <><i className="bi bi-eye-slash-fill"></i> Hide</> : <><i className="bi bi-eye-fill"></i> Show</>}
-              </button>
-            </div>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-            {/* Answer */}
-            {item.showAnswer && (
-              <div className="mt-3 p-3 bg-white rounded shadow-sm border-start border-4 border-primary">
-                {item.id === 4 ? (
-                  <div>
-                    <p className="mb-2"><strong>A:</strong> {item.answer}</p>
-                    <img
-                      src="https://images.pexels.com/photos/459225/pexels-photo-459225.jpeg?cs=srgb&dl=daylight-environment-forest-459225.jpg&fm=jpg"
-                      alt="Motivational Forest"
-                      className="img-fluid rounded mt-2"
-                      style={{ maxHeight: '300px', objectFit: 'cover' }}
-                    />
-                  </div>
-                ) : (
-                  <p className="mb-0"><strong>A:</strong> {item.answer}</p>
-                )}
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="d-flex justify-content-end align-items-center mt-3">
-              <button className="btn btn-outline-secondary btn-sm me-2" onClick={() => vote(item.id, 'like')}>
-                <i className="bi bi-hand-thumbs-up-fill"></i> {item.likes}
-              </button>
-              <button className="btn btn-outline-secondary btn-sm me-2" onClick={() => vote(item.id, 'dislike')}>
-                <i className="bi bi-hand-thumbs-down-fill"></i> {item.dislikes}
-              </button>
-              <button className="btn btn-outline-secondary btn-sm" onClick={() => toggleReply(item.id)}>
-                <i className="bi bi-reply-fill"></i> Reply
-              </button>
-            </div>
-
-            {/* Reply Input */}
-            {item.showReply && (
-              <div className="mt-3">
-                <textarea
-                  className="form-control form-control-sm mb-2"
-                  rows="2"
-                  placeholder="Write your reply..."
-                  value={item.replyText}
-                  onChange={e => handleReplyChange(item.id, e.target.value)}
-                />
-                <div className="d-flex justify-content-end">
-                  <button className="btn btn-primary btn-sm" onClick={() => submitReply(item.id)}>
-                    Submit
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Replies List */}
-            {item.replies.map((r, idx) => (
-              <div key={idx} className="mt-3 p-3 bg-white rounded shadow-sm border d-flex justify-content-between align-items-start">
-                <p className="mb-0"><strong>Reply:</strong> {r}</p>
-                <button
-                  className="btn btn-sm btn-outline-danger ms-3"
-                  title="Delete reply"
-                  onClick={() => deleteReply(item.id, idx)}
-                >
-                  <i className="bi bi-trash"></i>
-                </button>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* Back Button */}
-      <button
-        className="btn btn-secondary position-fixed"
-        style={{ bottom: '20px', right: '20px', zIndex: 1000 }}
-        onClick={() => navigate('/drawer/sublist')}
+  if (error) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+          minHeight: 400,
+        }}
       >
-        <i className="bi bi-arrow-left-circle me-2"></i>Back
-      </button>
-    </div>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: "100vw", maxWidth: "1300px", mx: "auto", height: "100%" }}>
+      {/* Header Section */}
+      <Paper
+        elevation={2}
+        sx={{
+          bgcolor: "primary.main",
+          color: "white",
+          p: 3,
+          mb: 3,
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom>
+          {subject} Forum
+        </Typography>
+
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, mt: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="body1" sx={{ fontWeight: "bold", mr: 1 }}>
+              Faculty:
+            </Typography>
+            <Typography variant="body1">{faculty}</Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="body1" sx={{ fontWeight: "bold", mr: 1 }}>
+              Department:
+            </Typography>
+            <Typography variant="body1">{department}</Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="body1" sx={{ fontWeight: "bold", mr: 1 }}>
+              Course Code:
+            </Typography>
+            <Typography variant="body1">
+              {subject.substring(0, 3).toUpperCase() + "101"}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* Questions and Answers Section */}
+      <Box
+        sx={{
+          width: "100%",
+          maxHeight: "400px",
+          overflowY: "auto",
+          pr: 1,
+          mb: 8,
+        }}
+      >
+        {questions.length === 0 ? (
+          <Paper
+            elevation={1}
+            sx={{
+              p: 5,
+              textAlign: "center",
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h5" color="text.secondary" gutterBottom>
+              No questions available for this subject.
+            </Typography>
+          </Paper>
+        ) : (
+          questions.map((question) => (
+            <Card
+              key={question.id}
+              sx={{
+                mb: 3,
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
+              {/* Question */}
+              <CardHeader
+                title={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginleft: "2",
+                    }}
+                  >
+                    <Badge
+                      color="secondary"
+                      badgeContent={`Q${question.id}`}
+                      sx={{ mr: 3 }}
+                    />
+                    <Typography variant="h6" component="span">
+                      {question.question}
+                    </Typography>
+                  </Box>
+                }
+                action={
+                  <Button
+                    variant={question.showAnswer ? "outlined" : "contained"}
+                    color={question.showAnswer ? "secondary" : "primary"}
+                    size="small"
+                    startIcon={
+                      question.showAnswer ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )
+                    }
+                    onClick={() => toggleAnswer(question.id)}
+                  >
+                    {question.showAnswer ? "Hide Answer" : "Show Answer"}
+                  </Button>
+                }
+                sx={{ bgcolor: "background.paper" }}
+              />
+
+              {/* Answer (conditional) */}
+              {question.showAnswer && (
+                <CardContent
+                  sx={{
+                    borderLeft: 4,
+                    borderColor: "primary.main",
+                    pt: 0,
+                  }}
+                >
+                  <Box sx={{ mt: 2 }}>
+                    {question.danswer}
+                    <Typography
+                      variant="subtitle1"
+                      color="primary"
+                      fontWeight="bold"
+                    >
+                      Answer:
+                    </Typography>
+                    <Typography variant="body1" paragraph sx={{ mt: 1 }}>
+                      {question.answer}
+                    </Typography>
+
+                    {/* Display image if available */}
+                    {question.file_path && (
+                      <Box sx={{ mt: 2, mb: 2 }}>
+                        <img
+                          src={`http://localhost:5000/${question.file_path}`}
+                          alt="Answer illustration"
+                          style={{
+                            maxWidth: "100%",
+                            maxHeight: "400px",
+                            borderRadius: "8px",
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Voting buttons */}
+                  <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+                    <Button
+                      variant={question.liked ? "contained" : "outlined"}
+                      color="success"
+                      size="small"
+                      startIcon={<ThumbUpIcon />}
+                      onClick={() => handleVote(question.id, "like")}
+                    >
+                      {question.likes || 0}
+                    </Button>
+                    <Button
+                      variant={question.disliked ? "contained" : "outlined"}
+                      color="error"
+                      size="small"
+                      startIcon={<ThumbDownIcon />}
+                      onClick={() => handleVote(question.id, "dislike")}
+                    >
+                      {question.dislikes || 0}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      startIcon={<ChatIcon />}
+                      onClick={() => toggleReply(question.id)}
+                    >
+                      Reply
+                    </Button>
+                  </Box>
+
+                  {/* Replies */}
+                  {question.replies && question.replies.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography
+                        variant="subtitle2"
+                        color="text.secondary"
+                        fontWeight="bold"
+                        sx={{ mb: 1 }}
+                      >
+                        Replies:
+                      </Typography>
+
+                      {question.replies.map((reply, index) => (
+                        <Paper
+                          key={reply.id || index}
+                          variant="outlined"
+                          sx={{
+                            p: 2,
+                            mb: 1,
+                            bgcolor: "grey.100",
+                          }}
+                        >
+                          <Typography variant="body2" paragraph sx={{ mb: 1 }}>
+                            {reply.text}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Posted by: {reply.userId || "Anonymous"} •{" "}
+                            {new Date(reply.timestamp).toLocaleString()}
+                          </Typography>
+                        </Paper>
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Reply input (conditional) */}
+                  {question.showReplyInput && (
+                    <Box sx={{ mt: 2 }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={4}
+                        label="Your Reply"
+                        variant="outlined"
+                        value={question.replyText}
+                        onChange={(e) =>
+                          handleReplyChange(question.id, e.target.value)
+                        }
+                        sx={{ mb: 2 }}
+                      />
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 1,
+                        }}
+                      >
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => toggleReply(question.id)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => submitReply(question.id)}
+                          disabled={!question.replyText.trim()}
+                        >
+                          Submit Reply
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+                </CardContent>
+              )}
+            </Card>
+          ))
+        )}
+      </Box>
+
+      {/* Back button */}
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+          zIndex: 1000,
+        }}
+      >
+        <IconButton
+          color="primary"
+          size="large"
+          sx={{
+            bgcolor: "primary.main",
+            color: "white",
+            "&:hover": {
+              bgcolor: "primary.dark",
+            },
+            width: 56,
+            height: 56,
+            boxShadow: 3,
+          }}
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+        >
+          <ArrowBackIcon fontSize="medium" />
+        </IconButton>
+      </Box>
+    </Box>
   );
 };
 
