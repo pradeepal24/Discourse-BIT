@@ -421,6 +421,36 @@ app.delete('/deletedoubtanswer', (req, res) => {
   });
 });
 
+// Google login
+app.post('/google-login', (req, res) => {
+  const { name, email, picture } = req.body;
+
+  // First check if user already exists
+  const checkSql = 'SELECT * FROM auth WHERE email = ?';
+  db.query(checkSql, [email], (err, results) => {
+    if (err) {
+      console.error('Check user error:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (results.length > 0) {
+      // User exists, no need to insert again
+      res.json({ message: 'Google user logged in successfully.' });
+    } else {
+      // Insert new Google user into auth table with a default password
+      const insertSql = 'INSERT INTO auth (username, email, password, role) VALUES (?, ?, ?, ?)';
+      db.query(insertSql, [name, email, 'googleuser', 'student'], (err, result) => {
+        if (err) {
+          console.error('Insert Google user error:', err);
+          return res.status(500).json({ message: 'Server error' });
+        }
+
+        res.json({ message: 'Google user registered and logged in successfully.' });
+      });
+    }
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });

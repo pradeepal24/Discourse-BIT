@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
 import image from "../../assets/image.png";
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
 
 const Login = ({ setRole }) => {
   const [username, setUsername] = useState("");
@@ -21,8 +23,8 @@ const Login = ({ setRole }) => {
       });
 
       const { name, role, faculty_id, subject, department } = response.data;
-      console.log(response.data);
 
+      // Store values in localStorage
       localStorage.setItem("username", name);
       localStorage.setItem("role", role);
       localStorage.setItem("faculty_id", faculty_id);
@@ -31,7 +33,6 @@ const Login = ({ setRole }) => {
 
       setRole(role);
 
-      // Redirect based on role
       if (role === "admin") {
         navigate("/drawer");
       } else if (role === "faculty") {
@@ -47,14 +48,34 @@ const Login = ({ setRole }) => {
     }
   };
 
+  // Google success function
+  const handleGoogleSuccess = (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential);
+    console.log(decoded); // Shows: name, email, picture
+
+    localStorage.setItem("username", decoded.name);
+    localStorage.setItem("email", decoded.email); // Optional
+    localStorage.setItem("picture", decoded.picture); // Optional
+    localStorage.setItem("role", "student"); // Default role
+    setRole("student");
+
+    navigate("/drawer/sublist");
+  };
+
+  const handleGoogleFailure = (error) => {
+    console.error(error);
+    setError("Google Sign-In failed");
+  };
+
   return (
     <div className="wrapper">
       <div>
-        <img src={image} alt="bit logo" style={{ width: 150, height: 150 }} />
+        <img src={image} alt="bit logo" style={{ width: 200, height: 200 }} />
       </div>
       <div className="form-box login">
         <form onSubmit={handleLogin}>
           <h1 className="Name">BIT DISCOURSE</h1>
+
           {error && <div className="error-message">{error}</div>}
 
           <div className="input-box">
@@ -84,19 +105,26 @@ const Login = ({ setRole }) => {
           <button className="submit" type="submit">
             Login
           </button>
+
           <div className="or">Or</div>
 
-          <button className="google-sign-in" type="button">
-            <img
-              src="https://img.icons8.com/color/16/000000/google-logo.png"
-              alt="Google logo"
+          <div className="google-sign-in-container">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleFailure}
+              type="standard"
+              theme="white"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+              logo_alignment="center"
+              width="100%"
             />
-            Sign in with Google
-          </button>
+          </div>
         </form>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Login; 

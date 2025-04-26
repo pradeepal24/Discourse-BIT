@@ -1,6 +1,6 @@
 // src/Drawer/Drawer.tsx
 import React, { useEffect } from "react";
-import { useNavigate, Routes, Route, Navigate } from "react-router-dom";
+import { useNavigate, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
@@ -15,7 +15,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import { useLocation } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -115,6 +114,7 @@ const MiniDrawer: React.FC<MiniDrawerProps> = ({ role }) => {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = {
     student: [
@@ -139,6 +139,11 @@ const MiniDrawer: React.FC<MiniDrawerProps> = ({ role }) => {
       { text: "Map Faculty", path: "admin", icon: <GroupAddIcon /> },
     ],
   } as const;
+
+  // Function to check if a menu item is active
+  const isActive = (path: string) => {
+    return location.pathname === `/drawer/${path}`;
+  };
 
   // Open / close drawer
   const handleDrawerOpen = () => setOpen(true);
@@ -196,41 +201,54 @@ const MiniDrawer: React.FC<MiniDrawerProps> = ({ role }) => {
         <Divider />
 
         <List>
-          {menuItems[role].map(({ text, path, icon }) => (
-            <ListItem
-              key={text}
-              disablePadding
-              sx={{
-                display: "block",
-
-                color: "black",
-                fontSize: "1rem", // or '14px', '1.2rem', etc.
-                fontWeight: "bold", // optional
-              }}
-              onClick={() => navigate(`/drawer/${path}`)}
-            >
-              <ListItemButton
+          {menuItems[role].map(({ text, path, icon }) => {
+            const active = isActive(path);
+            return (
+              <ListItem
+                key={text}
+                disablePadding
                 sx={{
-                  minHeight: 48,
-                  justifyContent: open ? "initial" : "center",
-                  px: 2.5,
+                  display: "block",
+                  color: "black",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
                 }}
+                onClick={() => navigate(`/drawer/${path}`)}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    justifyContent: "center",
-                    color: "black",
+              <ListItemButton
+  sx={{
+    minHeight: 48,
+    justifyContent: open ? "initial" : "center",
+    px: 2.5,
+    backgroundColor: active ? "#f5f5f5" : "transparent",  // active background also light gray
+    "&:hover": {
+      backgroundColor: "#f5f5f5", // hover always light gray
+    },
+  }}
+>
+  <ListItemIcon
+    sx={{
+      minWidth: 0,
+      justifyContent: "center",
+      color: active ? theme.palette.primary.main : "black",
+      mr: open ? 3 : "auto",
+    }}
+  >
+    {icon}
+  </ListItemIcon>
+  <ListItemText 
+    primary={text} 
+    sx={{ 
+      opacity: open ? 1 : 0,
+      color: active ? theme.palette.primary.main : "inherit" 
+    }} 
+  />
+</ListItemButton>
 
-                    mr: open ? 3 : "auto",
-                  }}
-                >
-                  {icon}
-                </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+
+              </ListItem>
+            );
+          })}
         </List>
 
         <Divider />
